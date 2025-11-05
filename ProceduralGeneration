@@ -1,0 +1,26 @@
+local rep = game:GetService("ReplicatedStorage")
+local hallwaysFold = rep.Structures.Hallways
+local roomsFold = rep.Structures.Rooms
+local repStarterRoom = rep.Structures:WaitForChild("Room")
+local distance = 1.95
+local Initiater = rep:FindFirstChild("SendGenerationEvent")
+local generate = require(rep.Generate)
+local startingPart = workspace.StartingPart
+local SCFrame = startingPart.CFrame
+Initiater.OnServerEvent:Connect(function(player, iterations)
+-- silly lil for loop
+local generated = workspace.Generated:GetDescendants()
+for i,v in pairs(generated) do
+	print(i)
+	v:Destroy()
+end
+-- add starting room that we previously deleted
+	local startingRoom = repStarterRoom:Clone()
+	startingRoom.Parent = workspace.Generated
+	startingRoom:PivotTo(SCFrame)
+for loopy = 1,iterations,1 do
+generate.generate(distance)
+task.wait(0.15)
+end
+print("End")
+end)
