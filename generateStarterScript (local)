@@ -1,0 +1,27 @@
+local textBox =  script.Parent
+local button = textBox:FindFirstChild("TextButton")
+local SendGenerationEvent = game.ReplicatedStorage:WaitForChild("SendGenerationEvent")
+local debounce = false
+-- start generation
+button.MouseButton1Up:Connect(function()
+	if debounce == false then
+		debounce = true
+	local currentText = textBox.Text
+	print(currentText)
+	-- ensure its a number
+	local number = tonumber(currentText)
+	
+	if number == nil then 
+		number = 1
+	end
+	
+	task.spawn(function()
+		-- fire proceduralGeneration script with given number :)
+	SendGenerationEvent:FireServer(number)
+	end)
+	
+	task.wait(3)
+	print("Your 3 second cooldown is over! pls tip me - from ".. script.Name)
+	debounce = false
+	end
+end)
