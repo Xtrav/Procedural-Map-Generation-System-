@@ -1,0 +1,149 @@
+local module = {}
+
+function module.generate(distance)
+	local rep = script.Parent
+	local hallways = rep.Structures.Hallways
+	local rooms = rep.Structures.Rooms
+	local previouslyGenerated = workspace.Generated:GetDescendants()
+	print("Start")
+
+	for _, v in pairs(previouslyGenerated) do
+		if v and v.Name == "Door" then
+			-- if room
+			  if v.Parent.Name == "Room" then
+			local hallwayChildren = hallways:GetChildren()
+			local randomIndex = math.random(1, #hallwayChildren)
+			local hallwaySelected = hallwayChildren[randomIndex]
+			local hallway = hallwaySelected:Clone()
+
+			local center = hallway:FindFirstChild("Center")
+			local centerAt = center and center:FindFirstChild("Attachment")
+			
+			local doorAt = v:FindFirstChild("Attachment")
+
+			if not (centerAt and doorAt) then
+				warn("Missing attachments on:", v)
+				continue
+			end
+
+			local relCFrame = centerAt.CFrame:Inverse()
+			local perfectCFrame = doorAt.WorldCFrame * relCFrame
+
+			local pos = perfectCFrame.Position
+			local _, y, _ = perfectCFrame:ToOrientation()
+			local fixedCFrame = CFrame.new(pos) * CFrame.Angles(0, y, 0)
+			
+			local localForward = -centerAt.CFrame.RightVector
+			local worldForward = (perfectCFrame:VectorToWorldSpace(localForward)).Unit
+			local offsetVector = worldForward * -distance
+			local heightOffset = Vector3.new(0, 0.3, 0)
+			local movedCFrame = fixedCFrame + offsetVector + heightOffset
+			local detecterPart = Instance.new("Part")
+			detecterPart.Transparency = 0
+			detecterPart.Color = Color3.new(255, 0, 0)
+			detecterPart.Anchored = true
+			detecterPart.CanCollide = false
+			detecterPart.Size = Vector3.new(3.65, 1.75, 3.65)
+			detecterPart.Parent = workspace
+			detecterPart:PivotTo(movedCFrame)
+			local open = true
+			detecterPart.Anchored = false
+			local event
+				event = detecterPart.Touched:Connect(function(hit)
+					if not (hit == hallway) and not (hit.Parent == workspace.Map) then
+					print(hit)
+					open = false
+				hallway:Destroy()
+				detecterPart:Destroy()
+				v.Transparency = 0
+				v.Material = Enum.Material.Plastic
+				v.Color = Color3.new(163, 162, 165)
+				v.Name = "Wall"
+				event:Disconnect()
+				end
+				end)
+			task.wait(0.05)
+			detecterPart.Anchored = true
+			if open == true then
+				event:Disconnect()
+				end
+			if hallway and hallway.Parent == nil and open == true then
+			detecterPart:Destroy()
+			hallway.Parent = workspace.Generated
+			hallway:PivotTo(movedCFrame)
+			v:Destroy()
+			end
+			-- if hallway
+				else if v.Parent.Name == "Hallway" then
+					local roomChildren = rooms:GetChildren()
+					local randomIndex = math.random(1, #roomChildren)
+					local roomSelected = roomChildren[randomIndex]
+					local room = roomSelected:Clone()
+
+					local center = room:FindFirstChild("Center")
+					local centerAt = center and center:FindFirstChild("Attachment")
+
+					local doorAt = v:FindFirstChild("Attachment")
+
+					if not (centerAt and doorAt) then
+						warn("Missing attachments on:", v)
+						continue
+					end
+
+					--- Calculate the CFrame
+					local relCFrame = centerAt.CFrame:Inverse()
+					local perfectCFrame = doorAt.WorldCFrame * relCFrame
+					local pos = perfectCFrame.Position
+					local _, y, _ = perfectCFrame:ToOrientation()
+					local fixedCFrame = CFrame.new(pos) * CFrame.Angles(0, y, 0)
+
+					local localForward = -centerAt.CFrame.RightVector
+					local worldForward = (perfectCFrame:VectorToWorldSpace(localForward)).Unit
+					local offsetVector = worldForward * -distance
+					local heightOffset = Vector3.new(0, 0.3, 0)
+					local movedCFrame = fixedCFrame + offsetVector + heightOffset
+					
+					local detecterPart = Instance.new("Part")
+					detecterPart.Transparency = 0
+					detecterPart.Color = Color3.new(255, 0, 0)
+					detecterPart.Anchored = true
+					detecterPart.CanCollide = false
+					detecterPart.Size = Vector3.new(3.75, 1.75, 3.75)
+					detecterPart.Parent = workspace
+					detecterPart:PivotTo(movedCFrame)
+					local open = true
+					detecterPart.Anchored = false
+					local event
+					event = detecterPart.Touched:Connect(function(hit)
+						
+						if not (hit == room) and not (hit.Parent == workspace.Map) then
+							print(hit)
+							open = false
+							room:Destroy()
+							detecterPart:Destroy()
+							v.Transparency = 0
+							v.Material = Enum.Material.Plastic
+							v.Color = Color3.new(163, 162, 165)
+							v.Name = "Wall"
+							event:Disconnect()
+						end
+						
+					end)
+					task.wait(0.05)
+					detecterPart.Anchored = true
+					if open == true then
+						event:Disconnect()
+					end
+					if room and room.Parent == nil and open == true then
+						detecterPart:Destroy()
+						room.Parent = workspace.Generated
+						room:PivotTo(movedCFrame)
+						v:Destroy()
+					end
+				end
+			end
+		end
+	end
+end
+
+return module
